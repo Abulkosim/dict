@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from 'vue'
+import { onMounted, ref } from 'vue'
 import { useDark, useToggle } from '@vueuse/core'
 
 const isDark = useDark()
@@ -8,12 +8,15 @@ const audio = document.querySelector('#audio');
 
 let word = ref('')
 let full = ref([])
+let error = ref('')
 
 function fetchData() {
   fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${word.value}`)
     .then((response) => response.json())
     .then((data) => {
-      console.log(data)
+      if (data.title == 'No Definitions Found') {
+        error.value = data.title
+      }
       full.value = data
       audio.setAttribute("src", `${data[0]?.phonetics[0]?.audio}`)
       if (!audio.getAttribute("src")) {
@@ -21,7 +24,7 @@ function fetchData() {
       }
     })
     .catch((error) => {
-      console.log('No Definitions Found')
+      console.log(error)
     })
 }
 
@@ -81,7 +84,7 @@ function playAudio() {
         </div>
       </div>
       <div v-if="!full[0]?.word" class="mt-8 text-bluish dark:text-greenish">
-        <p class="text-bluish dark:text-greenish text-3xl text-center mt-4">No definitions found!</p>
+        <p class="text-bluish dark:text-greenish font-medium text-3xl text-center mt-4">{{ error }}</p>
       </div>
     </div>
   </div>
